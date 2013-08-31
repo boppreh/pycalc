@@ -1,0 +1,129 @@
+from __future__ import division
+from collections import Counter
+import re
+
+class Unit(object):
+    def __init__(self, numerator=(), denominator=()):
+        self.numerator = numerator
+        self.denominator = denominator
+
+    def __bool__(self):
+        return bool(self.numerator or self.denominator)
+
+    def __mul__(self, other):
+        return Unit(self.numerator + other.numerator, self.denominator + self.denominator)
+
+    def __truediv__(self, other):
+        return Unit(self.numerator + other.denominator, self.denominator + other.numerator)
+
+    def __eq__(self, other):
+        return self.numerator == other.numerator and self.denominator == other.denominator
+
+    def simplify(self, units):
+        str_numerators = []
+        for unit, count in units.items():
+            if count == 0:
+                continue
+            elif count == 1:
+                str_numerators.append(str(unit))
+            else:
+                str_numerators.append(str(unit) + '^' + str(count))
+
+        return ' '.join(str_numerators)
+
+    def __str__(self):
+        num = Counter(self.numerator)
+        den = Counter(self.denominator)
+        for unit, count in num.items():
+            num[unit] -= min(count, den[unit])
+            den[unit] -= min(count, den[unit])
+
+        if not all(den.values()):
+            return self.simplify(num)
+        else:
+            return self.simplify(num) + ' / ' + self.simplify(den)
+
+class Measure(float):
+    def __new__(cls, value, unit):
+        return float.__new__(cls, value)
+
+    def __init__(self, value, unit):
+        self.unit = unit
+
+    def __add__(self, other):
+        assert not hasattr(other, 'unit') or self.unit == other.unit
+        return Measure(float(self) + other, self.unit)
+
+    def __sub__(self, other):
+        assert not hasattr(other, 'unit') or self.unit == other.unit
+        return Measure(float(self) - other, self.unit)
+
+    def __mul__(self, other):
+        if hasattr(other, 'unit'):
+            return Measure(float(self) * other, self.unit * other.unit)
+        else:
+            return Measure(float(self) * other, self.unit)
+
+    def __truediv__(self, other):
+        if hasattr(other, 'unit'):
+            return Measure(float(self) / other, self.unit / other.unit)
+        else:
+            return Measure(float(self) / other, self.unit)
+
+    def __pow__(self, other):
+        assert not other.unit
+        return Measure(float(self) ** other, self.unit * self.unit)
+
+    def __str__(self):
+        if self.unit:
+            return '{} {}'.format(float(self), self.unit)
+        else:
+            return str(float(self))
+
+class Percentage(float):
+    def __radd__(self, other):
+        if isinstance(other, Percentage):
+            return Percentage(float(other) + float(self))
+        return other * (1 + float(self))
+
+    def __rsub__(self, other):
+        if isinstance(other, Percentage):
+            return Percentage(float(other) - float(self))
+        return other * (1 - float(self))
+
+    def __str__(self):
+        return str(float(self) * 100) + '%'
+
+def pattern(text):
+    number = r'(\d+(?:\.\d*)?)'
+    word = r'([a-zA-Z]+)'
+    beginning = r'(?:^|\W)'
+    return beginning + text.format(number=number, word=word)
+
+def parse(text):
+    text = re.sub(pattern('{number}%'), r'Percentage(\1 / 100)', text)
+    text = re.sub(pattern('{number}\s*{word}'), r'Measure(\1, Unit(("\2",)))', text)
+    return eval(text)
+
+def print_page(value):
+    if isinstance(value, Measure):
+        return str(value)
+    elif isinstance(value, Percentage):
+        complement = Percentage(1 - value)
+        tries = 1 / value
+        return '{value}<br><br>Complement: <a href="?q=100%-{value}">{complement}</a><br>Tries: <a href="?q=1/{value}">{tries}</a>'.format(value=value, complement=complement, tries=tries)
+    elif isinstance(value, float) or isinstance(value, int):
+        return str(value)
+
+if __name__ == "__main__":
+    from flask import Flask, request
+    app = Flask(__name__)
+
+    @app.route('/')
+    def hello():
+        query = request.args['q']
+        result = parse(query)
+        return '<html><head><title>{}</title></head><body>{}</body></html>'.format(query, print_page(result))
+
+    app.debug = True
+    app.run()
