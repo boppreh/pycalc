@@ -154,7 +154,7 @@ def print_page(value):
         complement = Percentage(1 - value)
         inverse = 1 / value
         return '{value}<br><br>Complement: <a href="?q=100%-{value}">{complement}</a><br>Inverse: <a href="?q=1/{value}">{inverse}</a>'.format(value=value, complement=complement, inverse=inverse)
-    elif isinstance(value, float) or isinstance(value, int):
+    elif isinstance(value, float) or isinstance(value, int) or isinstance(value, long):
         return str(value)
 
 if __name__ == "__main__":
