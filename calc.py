@@ -70,8 +70,13 @@ alternative_units = {
 
 class Unit(object):
     def __init__(self, numerator=(), denominator=()):
-        self.numerator = tuple(numerator)
-        self.denominator = tuple(denominator)
+        numerator, denominator = list(numerator), list(denominator)
+        for name in numerator:
+            if name in denominator:
+                numerator.remove(name)
+                denominator.remove(name)
+        self.numerator = numerator
+        self.denominator = denominator
 
     def __bool__(self):
         return bool(self.numerator or self.denominator)
@@ -100,9 +105,6 @@ class Unit(object):
     def __str__(self):
         num = Counter(self.numerator)
         den = Counter(self.denominator)
-        for unit, count in num.items():
-            num[unit] -= min(count, den[unit])
-            den[unit] -= min(count, den[unit])
 
         if not any(den.values()):
             return self.group_powers(num)
