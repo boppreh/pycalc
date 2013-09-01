@@ -1,6 +1,7 @@
 from __future__ import division
 from collections import Counter
 import re
+import math
 
 si_prefixes_multipliers = {
     'milli': 1 / 1000,
@@ -156,6 +157,13 @@ def print_page(value):
         return '{value}<br><br>Complement: <a href="?q=100%-{value}">{complement}</a><br>Inverse: <a href="?q=1/{value}">{inverse}</a>'.format(value=value, complement=complement, inverse=inverse)
     elif isinstance(value, float) or isinstance(value, int) or isinstance(value, long):
         return str(value)
+    elif isinstance(value, tuple):
+        assert len(value) == 2
+        ratio = 100 * value[0] / value[1]
+        iratio = 100 * value[1] / value[0]
+        decibel = 10 * math.log10(ratio)
+        return '{value}<br><br>{ratio}% / {iratio}%<br>{decibel} dB'.format(value=value, ratio=ratio, iratio=iratio, decibel=decibel)
+
 
 if __name__ == "__main__":
     from flask import Flask, request
