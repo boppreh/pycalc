@@ -72,6 +72,43 @@ class Unit(object):
         else:
             return self.simplify(num) + ' / ' + self.simplify(den)
 
+    @staticmethod
+    def normalize_single(name):
+        if len(name) == 1 and name in si_unit_abbreviations:
+            name = si_unit_abbreviations[name]
+        elif len(name) == 2:
+            prefix, unit = name[0], name[1]
+
+            if (prefix in si_prefix_abbreviations and
+                unit in si_unit_abbreviations):
+
+                long_prefix = si_prefix_abbreviations[prefix]
+                long_unit = si_unit_abbreviations[unit]
+                name = long_prefix + long_unit 
+
+        for prefix, multiplier in si_prefixes_multipliers.items():
+            if name.startswith(prefix) and len(name) > len(prefix):
+                return (multiplier, name[len(prefix):])
+
+        return (1, name)
+
+    def normalize(self):
+        total_multiplier = 1.0
+        new_numerator = []
+        new_denominator = []
+
+        for name in self.numerator:
+            multiplier, new_name = self.normalize_single(name)
+            total_multiplier *= multiplier
+            new_numerator.append(new_name)
+
+        for name in self.denominator:
+            multiplier, new_name = self.normalize_single(name)
+            total_multiplier /= multiplier
+            new_denominator.append(new_name)
+
+        return (total_multiplier, Unit(new_numerator, new_denominator))
+
 class Measure(float):
     def __new__(cls, value, unit):
         return float.__new__(cls, value)
@@ -124,19 +161,8 @@ class Percentage(float):
         return str(float(self) * 100) + '%'
 
 def to_measure(value, name):
-    if len(name) == 1 and name in si_unit_abbreviations.values():
-        name = si_unit_abbreviations[name]
-    elif len(name) == 2:
-        prefix, unit = name[0], name[1]
-        if prefix in si_prefix_abbreviations and unit in si_unit_abbreviations:
-            name = si_prefix_abbreviations[prefix] + si_unit_abbreviations[unit]
-
-    for prefix, multiplier in si_prefixes_multipliers.items():
-        if name.startswith(prefix) and len(name) > len(prefix):
-            name = name[len(prefix):]
-            value = value * multiplier
-
-    return Measure(value, Unit((name,), ()))
+    multiplier, name = Unit.normalize_single(name)
+    return Measure(value * multiplier, Unit((name,), ()))
 
 def pattern(text):
     number = r'(\d+(?:\.\d*)?)'
