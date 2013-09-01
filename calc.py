@@ -287,7 +287,7 @@ if __name__ == "__main__":
         else:
             query = ''
             body = ''
-        return '<html><body><form action="/" method="GET"><input name="q" value="{}" autofocus/></form>{}</body></html>'.format(query, body)
+        return '<html><body><form action="/" method="GET"><input name="q" value="{}" style="width: 500" autofocus/></form>{}</body></html>'.format(query, body)
 
     app.debug = True
     app.run()
