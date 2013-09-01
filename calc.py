@@ -172,14 +172,13 @@ def to_measure(value, name):
 def pattern(text):
     number = r'(\d+(?:\.\d*)?)'
     word = r'([a-zA-Z]+)'
-    beginning = r'(?:^|\W)'
+    beginning = r'(?:(?<=\W)|^)'
     return beginning + text.format(number=number, word=word)
 
 def parse(text):
-    text = re.sub(pattern('{number}%'), r'Percentage(\1 / 100)', text)
-    text = re.sub(pattern('{number}\s*{word}'), r'to_measure(\1, "\2")', text)
+    text = re.sub(pattern(r'{number}%'), r'Percentage(\1 / 100)', text)
+    text = re.sub(pattern(r'{number}\s*{word}'), r'to_measure(\1, "\2")', text)
     return eval(text)
-
 
 page_templates = {
     Percentage: """
