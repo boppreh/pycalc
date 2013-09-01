@@ -48,7 +48,7 @@ class Unit(object):
     def __eq__(self, other):
         return self.numerator == other.numerator and self.denominator == other.denominator
 
-    def simplify(self, units):
+    def group_powers(self, units):
         str_numerators = []
         for unit, count in units.items():
             if count == 0:
@@ -67,10 +67,10 @@ class Unit(object):
             num[unit] -= min(count, den[unit])
             den[unit] -= min(count, den[unit])
 
-        if not all(den.values()):
-            return self.simplify(num)
+        if not any(den.values()):
+            return self.group_powers(num)
         else:
-            return self.simplify(num) + ' / ' + self.simplify(den)
+            return self.group_powers(num) + ' / ' + self.group_powers(den)
 
     @staticmethod
     def normalize_single(name):
@@ -99,12 +99,12 @@ class Unit(object):
 
         for name in self.numerator:
             multiplier, new_name = self.normalize_single(name)
-            total_multiplier /= multiplier
+            total_multiplier *= multiplier
             new_numerator.append(new_name)
 
         for name in self.denominator:
             multiplier, new_name = self.normalize_single(name)
-            total_multiplier *= multiplier
+            total_multiplier /= multiplier
             new_denominator.append(new_name)
 
         return (total_multiplier, Unit(new_numerator, new_denominator))
@@ -149,7 +149,7 @@ class Measure(float):
     def convert(self, other_unit):
         multiplier, normalized = other_unit.normalize()
         assert self.unit == normalized
-        return Measure(float(self) * multiplier, other_unit)
+        return Measure(float(self) / multiplier, other_unit)
 
 class Percentage(float):
     def __radd__(self, other):
@@ -165,22 +165,36 @@ class Percentage(float):
     def __str__(self):
         return str(float(self) * 100) + '%'
 
-def to_measure(value, name):
-    multiplier, name = Unit.normalize_single(name)
-    return Measure(value * multiplier, Unit((name,)))
+def to_measure(value, unit):
+    multiplier, new_unit = unit.normalize()
+    return Measure(value * multiplier, new_unit)
+
+def to_unit(text):
+    if '/' in text:
+        numerator, denominator = text.split('/')
+        return Unit([numerator], [denominator])
+    else:
+        return Unit([text])
+
 
 def pattern(text):
     number = r'(\d+(?:\.\d*)?)'
     word = r'([a-zA-Z]+)'
+    unit = r'(\w+(?:/\w+)?)'
     beginning = r'(?:(?<=\W)|^)'
-    return beginning + text.format(number=number, word=word)
+    return beginning + text.format(number=number, word=word, unit=unit)
 
 def parse(text):
     text = re.sub(pattern(r'{number}%'), r'Percentage(\1 / 100)', text)
-    text = re.sub(pattern(r'{number}\s*{word}'), r'to_measure(\1, "\2")', text)
-    text = re.sub(pattern(r'^(.+) in ({word})$'),
-                  r'(\1).convert(Unit(("\2",)))',
+
+    text = re.sub(pattern(r'{number}\s*{unit}'),
+                  r'to_measure(\1, to_unit("\2"))',
                   text)
+
+    text = re.sub(pattern(r'^(.+) in ({unit})$'),
+                  r'(\1).convert(to_unit("\2"))',
+                  text)
+
     return eval(text)
 
 page_templates = {
