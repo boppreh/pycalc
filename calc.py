@@ -5,6 +5,7 @@ from math import *
 from urllib import urlencode
 
 si_prefixes_multipliers = {
+    'centi': 1 / 100,
     'milli': 1 / 1000,
     'micro': 1 / 1000 ** 2,
     'nano': 1 / 1000 ** 3,
@@ -19,16 +20,32 @@ si_prefixes_multipliers = {
 
 si_prefix_abbreviations = {
     'm': 'milli',
+    'u': 'micro',
     'n': 'nano',
     'k': 'kilo',
+    'c': 'centi',
 }
 
 si_unit_abbreviations = {
     'g': 'gram',
     's': 'second',
-    'b': 'bit',
-    'B': 'byte',
     'm': 'meter',
+}
+
+alternative_units = {
+    'inch': (2.54, 'centimeter'),
+    'feet': (30.48, 'centimeter'),
+    'yard': (0.9144, 'meter'),
+    'mile': (1.60934, 'kilometer'),
+
+    'minute': (60, 'second'),
+    'hour': (60, 'minute'),
+    'day': (24, 'hour'),
+    'week': (7, 'day'),
+    'month': (30, 'day'),
+    'year': (12, 'month'),
+    'century': (100, 'year'),
+    'millennium': (1000, 'year'),
 }
 
 class Unit(object):
@@ -74,6 +91,12 @@ class Unit(object):
 
     @staticmethod
     def normalize_single(name):
+        total_multiplier = 1.0
+
+        while name in alternative_units:
+            multiplier, name = alternative_units[name] 
+            total_multiplier *= multiplier
+
         if len(name) == 1 and name in si_unit_abbreviations:
             name = si_unit_abbreviations[name]
         elif len(name) == 2:
@@ -88,9 +111,10 @@ class Unit(object):
 
         for prefix, multiplier in si_prefixes_multipliers.items():
             if name.startswith(prefix) and len(name) > len(prefix):
-                return (multiplier, name[len(prefix):])
+                total_multiplier *= multiplier
+                name = name[len(prefix):]
 
-        return (1, name)
+        return (total_multiplier, name)
 
     def normalize(self):
         total_multiplier = 1.0
