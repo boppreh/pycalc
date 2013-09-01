@@ -180,7 +180,7 @@ def to_unit(text):
 def pattern(text):
     number = r'(\d+(?:\.\d*)?)'
     word = r'([a-zA-Z]+)'
-    unit = r'(\w+(?:/\w+)?)'
+    unit = r'([a-zA-Z]+(?:/[a-zA-Z]+)?)'
     beginning = r'(?:(?<=\W)|^)'
     return beginning + text.format(number=number, word=word, unit=unit)
 
