@@ -110,8 +110,8 @@ def print_page(value):
         return str(value)
     elif isinstance(value, Percentage):
         complement = Percentage(1 - value)
-        tries = 1 / value
-        return '{value}<br><br>Complement: <a href="?q=100%-{value}">{complement}</a><br>Tries: <a href="?q=1/{value}">{tries}</a>'.format(value=value, complement=complement, tries=tries)
+        inverse = 1 / value
+        return '{value}<br><br>Complement: <a href="?q=100%-{value}">{complement}</a><br>Inverse: <a href="?q=1/{value}">{inverse}</a>'.format(value=value, complement=complement, inverse=inverse)
     elif isinstance(value, float) or isinstance(value, int):
         return str(value)
 
@@ -121,9 +121,13 @@ if __name__ == "__main__":
 
     @app.route('/')
     def hello():
-        query = request.args['q']
-        result = parse(query)
-        return '<html><head><title>{}</title></head><body>{}</body></html>'.format(query, print_page(result))
+        if len(request.args):
+            query = request.args['q']
+            body = print_page(parse(query))
+        else:
+            query = ''
+            body = ''
+        return '<html><body><form action="/" method="GET"><input name="q" value="{}" autofocus/></form>{}</body></html>'.format(query, body)
 
     app.debug = True
     app.run()
