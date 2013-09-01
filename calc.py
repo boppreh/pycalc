@@ -167,7 +167,7 @@ class Percentage(float):
 
 def to_measure(value, name):
     multiplier, name = Unit.normalize_single(name)
-    return Measure(value * multiplier, Unit((name,), ()))
+    return Measure(value * multiplier, Unit((name,)))
 
 def pattern(text):
     number = r'(\d+(?:\.\d*)?)'
@@ -178,6 +178,9 @@ def pattern(text):
 def parse(text):
     text = re.sub(pattern(r'{number}%'), r'Percentage(\1 / 100)', text)
     text = re.sub(pattern(r'{number}\s*{word}'), r'to_measure(\1, "\2")', text)
+    text = re.sub(pattern(r'^(.+) in ({word})$'),
+                  r'(\1).convert(Unit(("\2",)))',
+                  text)
     return eval(text)
 
 page_templates = {
