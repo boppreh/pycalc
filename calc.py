@@ -33,8 +33,8 @@ si_unit_abbreviations = {
 
 class Unit(object):
     def __init__(self, numerator=(), denominator=()):
-        self.numerator = numerator
-        self.denominator = denominator
+        self.numerator = tuple(numerator)
+        self.denominator = tuple(denominator)
 
     def __bool__(self):
         return bool(self.numerator or self.denominator)
@@ -145,6 +145,11 @@ class Measure(float):
             return '{} {}'.format(float(self), self.unit)
         else:
             return str(float(self))
+
+    def convert(self, other_unit):
+        multiplier, normalized = other_unit.normalize()
+        assert self.unit == normalized
+        return Measure(float(self) * multiplier, other_unit)
 
 class Percentage(float):
     def __radd__(self, other):
