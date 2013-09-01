@@ -99,12 +99,12 @@ class Unit(object):
 
         for name in self.numerator:
             multiplier, new_name = self.normalize_single(name)
-            total_multiplier *= multiplier
+            total_multiplier /= multiplier
             new_numerator.append(new_name)
 
         for name in self.denominator:
             multiplier, new_name = self.normalize_single(name)
-            total_multiplier /= multiplier
+            total_multiplier *= multiplier
             new_denominator.append(new_name)
 
         return (total_multiplier, Unit(new_numerator, new_denominator))
