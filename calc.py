@@ -2,7 +2,7 @@ from __future__ import division
 from collections import Counter
 import re
 
-si_prefixes = {
+si_prefixes_multipliers = {
     'milli': 1 / 1000,
     'micro': 1 / 1000 ** 2,
     'nano': 1 / 1000 ** 3,
@@ -29,7 +29,7 @@ si_prefix_abbreviations = {
     'k': 'kilo',
 }
 
-si_units_abbreviations = {
+si_unit_abbreviations = {
     'g': 'gram',
     's': 'second',
     'b': 'bit',
@@ -129,8 +129,20 @@ class Percentage(float):
     def __str__(self):
         return str(float(self) * 100) + '%'
 
-def to_unit(name):
-    return Unit((name,), ())
+def to_measure(value, name):
+    if len(name) == 1 and name in si_units:
+        name = si_unit_abbreviations[name]
+    elif len(name) == 2:
+        prefix, unit = name[0], name[1]
+        if prefix in si_prefix_abbreviations and unit in si_unit_abbreviations:
+            name = si_prefix_abbreviations[prefix] + si_unit_abbreviations[unit]
+
+    for prefix, multiplier in si_prefixes_multipliers.items():
+        if name.startswith(prefix):
+            name = name[len(prefix):]
+            value = value * multiplier
+
+    return Measure(value, Unit((name,), ()))
 
 def pattern(text):
     number = r'(\d+(?:\.\d*)?)'
@@ -140,7 +152,7 @@ def pattern(text):
 
 def parse(text):
     text = re.sub(pattern('{number}%'), r'Percentage(\1 / 100)', text)
-    text = re.sub(pattern('{number}\s*{word}'), r'Measure(\1, to_unit("\2"))', text)
+    text = re.sub(pattern('{number}\s*{word}'), r'to_measure(\1, "\2")', text)
     return eval(text)
 
 def print_page(value):
