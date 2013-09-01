@@ -217,6 +217,7 @@ def to_measure(value, unit):
     return Measure(value * multiplier, new_unit)
 
 def to_unit(text):
+    text = text.replace(' ', '')
     if '/' in text:
         numerator, denominator = text.split('/')
         return Unit([numerator], [denominator])
