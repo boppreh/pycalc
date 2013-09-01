@@ -187,12 +187,12 @@ def pattern(text):
 def parse(text):
     text = re.sub(pattern(r'{number}%'), r'Percentage(\1 / 100)', text)
 
-    text = re.sub(pattern(r'{number}\s*{unit}'),
-                  r'to_measure(\1, to_unit("\2"))',
-                  text)
-
     text = re.sub(pattern(r'^(.+) in ({unit})$'),
                   r'(\1).convert(to_unit("\2"))',
+                  text)
+
+    text = re.sub(pattern(r'{number}\s*{unit}'),
+                  r'to_measure(\1, to_unit("\2"))',
                   text)
 
     return eval(text)
