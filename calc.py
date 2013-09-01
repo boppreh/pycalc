@@ -77,7 +77,7 @@ class Unit(object):
         return bool(self.numerator or self.denominator)
 
     def __mul__(self, other):
-        return Unit(self.numerator + other.numerator, self.denominator + self.denominator)
+        return Unit(self.numerator + other.numerator, self.denominator + other.denominator)
 
     def __truediv__(self, other):
         return Unit(self.numerator + other.denominator, self.denominator + other.numerator)
