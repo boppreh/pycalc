@@ -15,14 +15,6 @@ si_prefixes_multipliers = {
     'exa': 1000 ** 6,
 }
 
-si_units = [
-    'gram',
-    'second',
-    'byte',
-    'bit',
-    'meter',
-]
-
 si_prefix_abbreviations = {
     'm': 'milli',
     'n': 'nano',
@@ -130,7 +122,7 @@ class Percentage(float):
         return str(float(self) * 100) + '%'
 
 def to_measure(value, name):
-    if len(name) == 1 and name in si_units:
+    if len(name) == 1 and name in si_unit_abbreviations.values():
         name = si_unit_abbreviations[name]
     elif len(name) == 2:
         prefix, unit = name[0], name[1]
@@ -138,7 +130,7 @@ def to_measure(value, name):
             name = si_prefix_abbreviations[prefix] + si_unit_abbreviations[unit]
 
     for prefix, multiplier in si_prefixes_multipliers.items():
-        if name.startswith(prefix):
+        if name.startswith(prefix) and len(name) > len(prefix):
             name = name[len(prefix):]
             value = value * multiplier
 
