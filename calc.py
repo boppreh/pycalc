@@ -56,10 +56,10 @@ alternative_units = {
     'century': (100, 'year'),
     'millennium': (1000, 'year'),
 
-    'kb': (1024, 'bit'),
-    'mb': (1024 ** 2, 'bit'),
-    'gb': (1024 ** 3, 'bit'),
-    'tb': (1024 ** 3, 'bit'),
+    'kb': (1000, 'bit'),
+    'mb': (1000 ** 2, 'bit'),
+    'gb': (1000 ** 3, 'bit'),
+    'tb': (1000 ** 3, 'bit'),
 
     'byte': (8, 'bit'),
     'KB': (1000, 'byte'),
