@@ -69,7 +69,18 @@ alternative_units = {
 }
 
 class Unit(object):
+    """
+    Class for representing a rational unit, such as "kilometer/second" or
+    "newton/m^2".
+
+    Each unit part is a string that is handled in a normalized form (usually SI
+    unit).
+    """
     def __init__(self, numerator=(), denominator=()):
+        """
+        Creates a new unit with numerator and denominator, automatically
+        simplifying the fraction as necessary.
+        """
         numerator, denominator = list(numerator), list(denominator)
         for name in numerator:
             if name in denominator:
@@ -91,6 +102,10 @@ class Unit(object):
         return self.numerator == other.numerator and self.denominator == other.denominator
 
     def group_powers(self, units):
+        """
+        Converts a list of units into a nice string grouping their powers.
+        Ex: "m m m s" -> "m^3 s".
+        """
         str_numerators = []
         for unit, count in units.items():
             if count == 0:
@@ -104,25 +119,35 @@ class Unit(object):
 
     def __str__(self):
         num = Counter(self.numerator)
-        den = Counter(self.denominator)
 
-        if not any(den.values()):
+        if not self.denominator:
             return self.group_powers(num)
         else:
+            den = Counter(self.denominator)
             return self.group_powers(num) + ' / ' + self.group_powers(den)
 
     @staticmethod
     def normalize_single(name):
+        """
+        Normalizes a single unit part, expanding abbreviations and converting
+        to SI units as necessary. Automatically normalizes until reaching a
+        stable name.
+
+        Return the multiplier and the new name. Ex: "km" -> (1000, "meter").
+        """
         old_name = name
         total_multiplier = 1.0
 
+        # Expand direct abbreviations.
         if name in unit_abbreviations:
             name = unit_abbreviations[name]
 
+        # Convert alternative units to SI.
         if name in alternative_units:
             multiplier, name = alternative_units[name] 
             total_multiplier *= multiplier
 
+        # Expand abbreviated SI prefixes if unit is also abbreviated.
         for prefix in si_prefix_abbreviations:
             unit = name[len(prefix):]
             if name.startswith(prefix) and unit in unit_abbreviations:
@@ -130,6 +155,7 @@ class Unit(object):
                 long_unit = unit_abbreviations[unit]
                 name = long_prefix + long_unit 
 
+        # Remove SI prefixes.
         for prefix, multiplier in si_prefixes_multipliers.items():
             if name.startswith(prefix) and len(name) > len(prefix):
                 total_multiplier *= multiplier
@@ -139,10 +165,15 @@ class Unit(object):
             assert total_multiplier == 1.0
             return (1.0, name)
         else:
+            # Repeat until no changes.
             new_multiplier, new_name = Unit.normalize_single(name)
             return new_multiplier * total_multiplier, new_name
 
     def normalize(self):
+        """
+        Returns a normalized Unit instance and its multiplier in relation to
+        the current instance.
+        """
         total_multiplier = 1.0
         new_numerator = []
         new_denominator = []
@@ -160,9 +191,15 @@ class Unit(object):
         return (total_multiplier, Unit(new_numerator, new_denominator))
 
 class Measure(float):
+    """
+    Number with associated unit. Behaves as a float for arithmetic operations,
+    but asserts and updates units as necessary.
+    """
+    # Required to extend primitive types.
     def __new__(cls, value, unit):
         return float.__new__(cls, value)
 
+    # Values has already been incorporated, nothing to set.
     def __init__(self, value, unit):
         self.unit = unit
 
@@ -197,11 +234,19 @@ class Measure(float):
             return str(float(self))
 
     def convert(self, other_unit):
+        """
+        Converts a measure into a different unit.
+        """
         multiplier, normalized = other_unit.normalize()
         assert self.unit == normalized
         return Measure(float(self) / multiplier, other_unit)
 
 class Percentage(float):
+    """
+    Class for representing percentages of measures. Implements non-obvious
+    arithmetic, such as "100 + 15% = 115" and "100 * 15% = 15". For most
+    operations behave as a float, where 100% is 1.0.
+    """
     def __radd__(self, other):
         if isinstance(other, Percentage):
             return Percentage(float(other) + float(self))
@@ -216,10 +261,17 @@ class Percentage(float):
         return str(float(self) * 100) + '%'
 
 def to_measure(value, unit):
+    """
+    Converts a numeric value and a unit into a normalized measure.
+    """
     multiplier, new_unit = unit.normalize()
     return Measure(value * multiplier, new_unit)
 
 def to_unit(text):
+    """
+    Converts the textual description of a unit into its Unit instance.
+    No support yet for multiple parts in the numerator or denominator.
+    """
     text = text.replace(' ', '')
     if '/' in text:
         numerator, denominator = text.split('/')
@@ -229,13 +281,19 @@ def to_unit(text):
 
 
 def pattern(text):
+    """
+    Expands a regex pattern, expanding references to "number", "word" and
+    "unit" to their respective regexes.
+    """
     number = r'(\d+(?:\.\d*)?)'
     word = r'([a-zA-Z]+)'
     unit = r'([a-zA-Z]+(?:\s*/\s*[a-zA-Z]+)?)'
-    beginning = r'(?:(?<=\W)|^)'
-    return beginning + text.format(number=number, word=word, unit=unit)
+    return r'\b' + text.format(number=number, word=word, unit=unit)
 
 def parse(text):
+    """
+    Parses and eval an expression that uses measures and percentages.
+    """
     text = re.sub(pattern(r'{number}%'), r'Percentage(\1 / 100)', text)
 
     text = re.sub(pattern(r'^(.+) in ({unit})$'),
@@ -248,37 +306,45 @@ def parse(text):
 
     return eval(text)
 
-page_templates = {
-    Percentage: """
-{{result}}
-Complement: {{100% - result}}
-Inverse: {{1 / result}} """,
-
-    tuple: """
-{{result}}
-{{100 * result[1] / result[0]}}% / {{100 * result[0] / result[1]}}%
-{{10 * log10(result[1] / result[0])}} dB"""
-}
-
-def apply_template(value, template):
-    template = template.replace('\n', '<br>').replace('result', str(value))
-    for expression in re.findall('{{(.+?)}}', template):
-        exp_result = parse(expression)
-        uri = urlencode({'q': expression})
-        link = '<a href="/?{}">{}</a>'.format(uri, exp_result)
-        template = template.replace('{{' + expression + '}}', link)
-
-    return template
-
-def print_page(value):
-    for type, template in page_templates.items():
-        if isinstance(value, type):
-            return apply_template(value, template)
-
-    return str(value)
-
 
 if __name__ == "__main__":
+    page_templates = {
+        Percentage: """
+    {{result}}
+    Complement: {{100% - result}}
+    Inverse: {{1 / result}} """,
+
+        tuple: """
+    {{result}}
+    {{100 * result[1] / result[0]}}% / {{100 * result[0] / result[1]}}%
+    {{10 * log10(result[1] / result[0])}} dB"""
+    }
+
+    def apply_template(value, template):
+        """
+        Given a value and a template, replace all sub-expressions in the
+        template with their results linked to the formula.
+        """
+        template = template.replace('\n', '<br>').replace('result', str(value))
+        for expression in re.findall('{{(.+?)}}', template):
+            exp_result = parse(expression)
+            uri = urlencode({'q': expression})
+            link = '<a href="/?{}">{}</a>'.format(uri, exp_result)
+            template = template.replace('{{' + expression + '}}', link)
+
+        return template
+
+    def print_page(value):
+        """
+        Returns the HTML page body for a given value.
+        """
+        for type, template in page_templates.items():
+            if isinstance(value, type):
+                return apply_template(value, template)
+
+        return str(value)
+
+
     from flask import Flask, request
     app = Flask(__name__)
 
