@@ -123,7 +123,7 @@ class Unit(object):
 
         for prefix in si_prefix_abbreviations:
             unit = name[len(prefix):]
-            if unit in unit_abbreviations:
+            if name.startswith(prefix) and unit in unit_abbreviations:
                 long_prefix = si_prefix_abbreviations[prefix]
                 long_unit = unit_abbreviations[unit]
                 name = long_prefix + long_unit 
@@ -134,7 +134,8 @@ class Unit(object):
                 name = name[len(prefix):]
 
         if name  == old_name:
-            return (total_multiplier, name)
+            assert total_multiplier == 1.0
+            return (1.0, name)
         else:
             new_multiplier, new_name = Unit.normalize_single(name)
             return new_multiplier * total_multiplier, new_name
