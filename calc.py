@@ -26,15 +26,24 @@ si_prefix_abbreviations = {
     'c': 'centi',
 }
 
-si_unit_abbreviations = {
+unit_abbreviations = {
     'g': 'gram',
     's': 'second',
     'm': 'meter',
+
+    'h': 'hour',
+    'min': 'minute',
+
+    'in': 'inch',
+    'ft': 'foot',
+
+    'b': 'bit',
+    'B': 'byte',
 }
 
 alternative_units = {
     'inch': (2.54, 'centimeter'),
-    'feet': (30.48, 'centimeter'),
+    'foot': (30.48, 'centimeter'),
     'yard': (0.9144, 'meter'),
     'mile': (1.60934, 'kilometer'),
 
@@ -46,6 +55,17 @@ alternative_units = {
     'year': (12, 'month'),
     'century': (100, 'year'),
     'millennium': (1000, 'year'),
+
+    'kb': (1024, 'bit'),
+    'mb': (1024 ** 2, 'bit'),
+    'gb': (1024 ** 3, 'bit'),
+    'tb': (1024 ** 3, 'bit'),
+
+    'byte': (8, 'bit'),
+    'KB': (1000, 'byte'),
+    'MB': (1000 ** 2, 'byte'),
+    'GB': (1000 ** 3, 'byte'),
+    'TB': (1000 ** 3, 'byte'),
 }
 
 class Unit(object):
@@ -91,22 +111,21 @@ class Unit(object):
 
     @staticmethod
     def normalize_single(name):
+        old_name = name
         total_multiplier = 1.0
 
-        while name in alternative_units:
+        if name in unit_abbreviations:
+            name = unit_abbreviations[name]
+
+        if name in alternative_units:
             multiplier, name = alternative_units[name] 
             total_multiplier *= multiplier
 
-        if len(name) == 1 and name in si_unit_abbreviations:
-            name = si_unit_abbreviations[name]
-        elif len(name) == 2:
-            prefix, unit = name[0], name[1]
-
-            if (prefix in si_prefix_abbreviations and
-                unit in si_unit_abbreviations):
-
+        for prefix in si_prefix_abbreviations:
+            unit = name[len(prefix):]
+            if unit in unit_abbreviations:
                 long_prefix = si_prefix_abbreviations[prefix]
-                long_unit = si_unit_abbreviations[unit]
+                long_unit = unit_abbreviations[unit]
                 name = long_prefix + long_unit 
 
         for prefix, multiplier in si_prefixes_multipliers.items():
@@ -114,7 +133,11 @@ class Unit(object):
                 total_multiplier *= multiplier
                 name = name[len(prefix):]
 
-        return (total_multiplier, name)
+        if name  == old_name:
+            return (total_multiplier, name)
+        else:
+            new_multiplier, new_name = Unit.normalize_single(name)
+            return new_multiplier * total_multiplier, new_name
 
     def normalize(self):
         total_multiplier = 1.0
