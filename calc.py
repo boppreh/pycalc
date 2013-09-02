@@ -47,6 +47,9 @@ alternative_units = {
     'yard': (0.9144, 'meter'),
     'mile': (1.60934, 'kilometer'),
 
+    'pound': (0.453592, 'kilogram'),
+    'stone': (6.35029, 'kilogram'),
+
     'minute': (60, 'second'),
     'hour': (60, 'minute'),
     'day': (24, 'hour'),
