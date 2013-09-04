@@ -21,9 +21,15 @@ class Measure(float):
         assert not hasattr(other, 'unit') or self.unit == other.unit
         return Measure(float(self) + other, self.unit)
 
+    def __radd__(self, other):
+        return self.__add__(other)
+
     def __sub__(self, other):
         assert not hasattr(other, 'unit') or self.unit == other.unit
         return Measure(float(self) - other, self.unit)
+
+    def __rsub__(self, other):
+        return self.__sub__(-other)
 
     def __mul__(self, other):
         if hasattr(other, 'unit'):
@@ -31,11 +37,20 @@ class Measure(float):
         else:
             return Measure(float(self) * other, self.unit)
 
+    def __rmul__(self, other):
+        return self.__mul__(other)
+
     def __truediv__(self, other):
         if hasattr(other, 'unit'):
             return Measure(float(self) / other, self.unit / other.unit)
         else:
             return Measure(float(self) / other, self.unit)
+
+    def __rtruediv__(self, other):
+        if hasattr(other, 'unit'):
+            return Measure(other / float(self), self.unit / other.unit)
+        else:
+            return Measure(other / float(self), self.unit)
 
     def __pow__(self, other):
         assert not other.unit
