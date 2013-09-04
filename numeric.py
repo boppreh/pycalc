@@ -1,3 +1,5 @@
+from __future__ import division
+
 class Measure(float):
     """
     Number with associated unit. Behaves as a float for arithmetic operations,
