@@ -1,7 +1,11 @@
 from __future__ import division
+try:
+    from urllib import urlencode
+except ImportError:
+    from urllib.parse import urlencode
+
 import re
 from math import *
-from urllib import urlencode
 
 from units import Unit
 from numeric import Measure, Percentage
