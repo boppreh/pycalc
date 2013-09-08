@@ -60,12 +60,14 @@ alternative_units = {
     'mb': (1000 ** 2, 'bit'),
     'gb': (1000 ** 3, 'bit'),
     'tb': (1000 ** 3, 'bit'),
+    'pb': (1000 ** 4, 'bit'),
 
     'byte': (8, 'bit'),
     'KB': (1000, 'byte'),
     'MB': (1000 ** 2, 'byte'),
     'GB': (1000 ** 3, 'byte'),
     'TB': (1000 ** 3, 'byte'),
+    'PB': (1000 ** 4, 'byte'),
 }
 
 class Unit(object):
@@ -102,10 +104,11 @@ class Unit(object):
         return Unit(self.numerator + other.denominator, self.denominator + other.numerator)
 
     def __eq__(self, other):
-        return (sorted(self.numerator) == sorted(other.numerator) and
+        return (isinstance(other, Unit) and 
+                sorted(self.numerator) == sorted(other.numerator) and
                 sorted(self.denominator) == sorted(other.denominator))
 
-    def group_powers(self, units):
+    def _group_powers(self, units):
         """
         Converts a list of units into a nice string grouping their powers.
         Ex: "m m m s" -> "m^3 s".
@@ -125,13 +128,13 @@ class Unit(object):
         num = Counter(self.numerator)
 
         if not self.denominator:
-            return self.group_powers(num)
+            return self._group_powers(num)
         else:
             den = Counter(self.denominator)
-            return self.group_powers(num) + ' / ' + self.group_powers(den)
+            return self._group_powers(num) + ' / ' + self._group_powers(den)
 
     @staticmethod
-    def normalize_single(name):
+    def _normalize_single(name):
         """
         Normalizes a single unit part, expanding abbreviations and converting
         to SI units as necessary. Automatically normalizes until reaching a
@@ -170,7 +173,7 @@ class Unit(object):
             return (1.0, name)
         else:
             # Repeat until no changes.
-            new_multiplier, new_name = Unit.normalize_single(name)
+            new_multiplier, new_name = Unit._normalize_single(name)
             return new_multiplier * total_multiplier, new_name
 
     def normalize(self):
@@ -183,12 +186,12 @@ class Unit(object):
         new_denominator = []
 
         for name in self.numerator:
-            multiplier, new_name = self.normalize_single(name)
+            multiplier, new_name = self._normalize_single(name)
             total_multiplier *= multiplier
             new_numerator.append(new_name)
 
         for name in self.denominator:
-            multiplier, new_name = self.normalize_single(name)
+            multiplier, new_name = self._normalize_single(name)
             total_multiplier /= multiplier
             new_denominator.append(new_name)
 
