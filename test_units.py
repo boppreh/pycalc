@@ -1,6 +1,15 @@
 import unittest
 from units import Unit
 
+def p(string):
+    if '/' in string:
+        str_numerator, str_denominator = string.split('/')
+        numerator, denominator = str_numerator.split(' '), str_denominator.split(' ')
+    else:
+        numerator, denominator = string.split(' '), []
+    return Unit(numerator, denominator)
+
+
 class TestUnit(unittest.TestCase):
     def setUp(self):
         self.empty = Unit()
@@ -37,6 +46,17 @@ class TestUnit(unittest.TestCase):
         self.assertEqual(str(self.num), 'a')
         self.assertEqual(str(self.den), ' / b')
         self.assertEqual(str(self.multiple), 'a^2 c / b d')
+
+    def test_normalize(self):
+        self.assertEqual(Unit().normalize(), (1, Unit()))
+        self.assertEqual(p('m').normalize(), (1, p('meter')))
+        self.assertEqual(p('m / m').normalize(), (1, Unit()))
+        self.assertEqual(p('m m / m').normalize(), (1, p('meter')))
+        self.assertEqual(p('kilometer').normalize(), (1000, p('meter')))
+        self.assertEqual(p('meter / kilometer').normalize(), (1 / 1000, Unit()))
+        self.assertEqual(p('milligram').normalize(), (1 / 1000, p('gram')))
+        self.assertEqual(p('milligram / kilometer').normalize(), (1 / 1000 ** 2, p('gram / meter')))
+        self.assertEqual(p('unknown milligram / kilometer').normalize(), (1 / 1000 ** 2, p('unknown gram / meter')))
 
 
 
