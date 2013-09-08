@@ -59,15 +59,15 @@ alternative_units = {
     'kb': (1000, 'bit'),
     'mb': (1000 ** 2, 'bit'),
     'gb': (1000 ** 3, 'bit'),
-    'tb': (1000 ** 3, 'bit'),
-    'pb': (1000 ** 4, 'bit'),
+    'tb': (1000 ** 4, 'bit'),
+    'pb': (1000 ** 5, 'bit'),
 
     'byte': (8, 'bit'),
     'KB': (1000, 'byte'),
     'MB': (1000 ** 2, 'byte'),
     'GB': (1000 ** 3, 'byte'),
-    'TB': (1000 ** 3, 'byte'),
-    'PB': (1000 ** 4, 'byte'),
+    'TB': (1000 ** 4, 'byte'),
+    'PB': (1000 ** 5, 'byte'),
 }
 
 class Unit(object):
