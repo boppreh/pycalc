@@ -32,8 +32,15 @@ class TestUnit(unittest.TestCase):
         self.assertEqual(self.empty * self.den, self.den)
         self.assertEqual(self.num * self.den, self.full)
 
+    def test_str(self):
+        self.assertEqual(str(self.empty), '')
+        self.assertEqual(str(self.num), 'a')
+        self.assertEqual(str(self.den), ' / b')
+        self.assertEqual(str(self.multiple), 'a^2 c / b d')
+
 
 
 if __name__ == '__main__':
     unittest.main()
+
 
