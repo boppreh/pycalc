@@ -57,6 +57,10 @@ class TestUnit(unittest.TestCase):
         self.assertEqual(p('milligram').normalize(), (1 / 1000, p('gram')))
         self.assertEqual(p('milligram / kilometer').normalize(), (1 / 1000 ** 2, p('gram / meter')))
         self.assertEqual(p('unknown milligram / kilometer').normalize(), (1 / 1000 ** 2, p('unknown gram / meter')))
+        self.assertEqual(p('B').normalize(), (8, p('bit')))
+        self.assertEqual(p('byte').normalize(), (8, p('bit')))
+        self.assertEqual(p('bit').normalize(), (1, p('bit')))
+        self.assertEqual(p('unknown').normalize(), (1, p('unknown')))
 
 
 
