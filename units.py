@@ -113,25 +113,24 @@ class Unit(object):
         Converts a list of units into a nice string grouping their powers.
         Ex: "m m m s" -> "m^3 s".
         """
-        str_numerators = []
-        for unit, count in units.items():
-            if count == 0:
-                continue
-            elif count == 1:
-                str_numerators.append(str(unit))
-            else:
-                str_numerators.append(str(unit) + '^' + str(count))
+        str_units = []
 
-        return ' '.join(str_numerators)
+        for i, item in enumerate(units):
+            if units.index(item) == i:
+                count = units.count(item)
+                if count == 1:
+                    str_units.append(item)
+                else:
+                    str_units.append(item + '^' + str(count))
+
+        return ' '.join(str_units)
 
     def __str__(self):
-        num = Counter(self.numerator)
-
         if not self.denominator:
-            return self._group_powers(num)
+            return self._group_powers(self.numerator)
         else:
-            den = Counter(self.denominator)
-            return self._group_powers(num) + ' / ' + self._group_powers(den)
+            return (self._group_powers(self.numerator) + ' / ' +
+                    self._group_powers(self.denominator))
 
     @staticmethod
     def _normalize_single(name):
