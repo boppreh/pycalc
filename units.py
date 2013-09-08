@@ -90,7 +90,10 @@ class Unit(object):
         self.denominator = denominator
 
     def __nonzero__(self):
-        return len(self.numerator) or len(self.denominator)
+        return bool(len(self.numerator) or len(self.denominator))
+
+    def __bool__(self):
+        return self.__nonzero__()
 
     def __mul__(self, other):
         return Unit(self.numerator + other.numerator, self.denominator + other.denominator)
