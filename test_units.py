@@ -11,26 +11,26 @@ class TestUnit(unittest.TestCase):
 
     def test_creation(self):
         self.assertFalse(self.empty)
-        self.assertEqual(self.empty.numerator, [])
-        self.assertEqual(self.empty.denominator, [])
+        self.assertEquals(self.empty.numerator, [])
+        self.assertEquals(self.empty.denominator, [])
 
         self.assertTrue(self.num)
-        self.assertEqual(self.num.numerator, ['a'])
-        self.assertEqual(self.num.denominator, [])
+        self.assertEquals(self.num.numerator, ['a'])
+        self.assertEquals(self.num.denominator, [])
 
         self.assertTrue(self.den)
-        self.assertEqual(self.den.numerator, [])
-        self.assertEqual(self.den.denominator, ['b'])
+        self.assertEquals(self.den.numerator, [])
+        self.assertEquals(self.den.denominator, ['b'])
 
         self.assertTrue(self.multiple)
-        self.assertEqual(self.multiple.numerator, ['a', 'a', 'c'])
-        self.assertEqual(self.multiple.denominator, ['b', 'd'])
+        self.assertEquals(self.multiple.numerator, ['a', 'a', 'c'])
+        self.assertEquals(self.multiple.denominator, ['b', 'd'])
 
     def test_mul(self):
-        self.assertEqual(self.multiple * self.full, self.full * self.multiple)
-        self.assertEqual(self.empty * self.num, self.num)
-        self.assertEqual(self.empty * self.den, self.den)
-        self.assertEqual(self.num * self.den, self.full)
+        self.assertEquals(self.multiple * self.full, self.full * self.multiple)
+        self.assertEquals(self.empty * self.num, self.num)
+        self.assertEquals(self.empty * self.den, self.den)
+        self.assertEquals(self.num * self.den, self.full)
 
 
 

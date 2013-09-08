@@ -90,10 +90,7 @@ class Unit(object):
         self.denominator = denominator
 
     def __nonzero__(self):
-        return bool(len(self.numerator) or len(self.denominator))
-
-    def __bool__(self):
-        return self.__nonzero__()
+        return len(self.numerator) or len(self.denominator)
 
     def __mul__(self, other):
         return Unit(self.numerator + other.numerator, self.denominator + other.denominator)
@@ -102,7 +99,7 @@ class Unit(object):
         return Unit(self.numerator + other.denominator, self.denominator + other.numerator)
 
     def __eq__(self, other):
-        return sorted(self.numerator) == sorted(other.numerator) and sorted(self.denominator) == sorted(other.denominator)
+        return self.numerator == other.numerator and self.denominator == other.denominator
 
     def group_powers(self, units):
         """
