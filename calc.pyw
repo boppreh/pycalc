@@ -96,7 +96,9 @@ if __name__ == "__main__":
         return str(value)
 
     from background import tray
-    tray('Calculator', 'calculator.png')
+    import webbrowser
+    tray('Calculator', 'calculator.png',
+         on_click=lambda: webbrowser.open('http://localhost:5000'))
     from simpleserver import serve
     serve({}, port=2346)
 
