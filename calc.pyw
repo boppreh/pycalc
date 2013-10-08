@@ -47,7 +47,7 @@ def parse(text):
     """
     text = re.sub(pattern(r'{number}%'), r'Percentage(\1 / 100)', text)
 
-    text = re.sub(pattern(r'^(.+) in ({unit})$'),
+    text = re.sub(pattern(r'(.+)\s+in\s+({unit})$'),
                   r'(\1).convert(to_unit("\2"))',
                   text)
 
@@ -95,6 +95,10 @@ if __name__ == "__main__":
 
         return str(value)
 
+    from background import tray
+    tray('Calculator', 'calculator.png')
+    from simpleserver import serve
+    serve({}, port=2346)
 
     from flask import Flask, request
     app = Flask(__name__)
@@ -109,5 +113,5 @@ if __name__ == "__main__":
             body = ''
         return '<html><body><form action="/" method="GET"><input name="q" value="{}" style="width: 500" autofocus/></form>{}</body></html>'.format(query, body)
 
-    app.debug = True
+    #app.debug = True
     app.run()
