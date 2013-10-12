@@ -115,6 +115,8 @@ if __name__ == "__main__":
             result = parse(query)
             body = print_page(result)
             last_queries.append(query + ' = ' + str(result))
+            if len(last_queries) > 10:
+                last_queries.pop(0)
         else:
             query = ''
             body = ''
