@@ -99,8 +99,11 @@ if __name__ == "__main__":
     import webbrowser
     tray('Calculator', 'calculator.png',
          on_click=lambda: webbrowser.open('http://localhost:5000'))
+
+
     from simpleserver import serve
-    serve({}, port=2346)
+    last_queries = []
+    serve(last_queries, port=2346)
 
     from flask import Flask, request
     app = Flask(__name__)
@@ -109,11 +112,12 @@ if __name__ == "__main__":
     def hello():
         if len(request.args):
             query = request.args['q']
-            body = print_page(parse(query))
+            result = parse(query)
+            body = print_page(result)
+            last_queries.append(query + ' = ' + str(result))
         else:
             query = ''
             body = ''
         return '<html><body><form action="/" method="GET"><input name="q" value="{}" style="width: 500" autofocus/></form>{}</body></html>'.format(query, body)
 
-    #app.debug = True
-    app.run()
+    app.run(debug=True, use_reloader=False)
