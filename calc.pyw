@@ -95,7 +95,7 @@ if __name__ == "__main__":
 
         return str(value)
 
-    from background import tray
+    from tray import tray
     import webbrowser
     tray('Calculator', 'calculator.png',
          on_click=lambda: webbrowser.open('http://localhost:5000'))
